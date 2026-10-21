@@ -1,65 +1,65 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/water_log.dart';
 
 class WaterController extends ChangeNotifier {
-  static const String _keyDailyGoal = 'daily_goal_ml';
-  static const String _keyCurrentAmount = 'current_amount_ml';
-  static const String _keyStreak = 'streak_days';
-  static const String _keyLastDate = 'last_date';
-  static const String _keyLogs = 'water_logs';
+  final String profileId;
+  final int initialGoalMl;
 
   int _dailyGoalMl = 2000;
   int _currentAmountMl = 0;
   int _streakDays = 0;
   List<WaterLog> _logs = [];
+  List<WaterLog> _historyLogs = [];
   bool _isLoading = true;
+
+  WaterController({this.profileId = 'default', this.initialGoalMl = 2000}) {
+    loadData();
+  }
+
+  String get _prefix => 'hydrotracker_profile_${profileId}_';
+  String get _keyDailyGoal => '${_prefix}daily_goal_ml';
+  String get _keyCurrentAmount => '${_prefix}current_amount_ml';
+  String get _keyStreak => '${_prefix}streak_days';
+  String get _keyLastDate => '${_prefix}last_date';
+  String get _keyLogs => '${_prefix}water_logs';
+  String get _keyHistoryLogs => '${_prefix}water_logs_history';
 
   int get dailyGoalMl => _dailyGoalMl;
   int get currentAmountMl => _currentAmountMl;
   int get streakDays => _streakDays;
   List<WaterLog> get logs => List.unmodifiable(_logs);
+  List<WaterLog> get historyLogs => List.unmodifiable(_historyLogs);
   bool get isLoading => _isLoading;
 
-  WaterController() {
-    loadData();
-  }
-
-  // 1. Memuat data dari SharedPreferences
   Future<void> loadData() async {
     _isLoading = true;
     notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
+    await _migrateOldWaterDataIfNeeded(prefs);
 
-    _dailyGoalMl = prefs.getInt(_keyDailyGoal) ?? 2000;
+    _dailyGoalMl = prefs.getInt(_keyDailyGoal) ?? initialGoalMl;
     _streakDays = prefs.getInt(_keyStreak) ?? 0;
 
     final String? lastDateStr = prefs.getString(_keyLastDate);
     final String todayStr = _formatDate(DateTime.now());
+    final List<String> currentLogsJson = prefs.getStringList(_keyLogs) ?? [];
+    final List<String>? historyLogsJson = prefs.getStringList(_keyHistoryLogs);
 
-    // Cek apakah data ini milik hari ini atau hari sebelumnya
+    _historyLogs = _decodeLogs(historyLogsJson ?? []);
+    _mergeIntoHistory(_decodeLogs(currentLogsJson));
+
     if (lastDateStr == todayStr) {
       _currentAmountMl = prefs.getInt(_keyCurrentAmount) ?? 0;
-
-      final List<String>? logsJson = prefs.getStringList(_keyLogs);
-      if (logsJson != null) {
-        _logs = logsJson.map((item) => WaterLog.fromJson(item)).toList();
-      }
+      _logs = _decodeLogs(currentLogsJson);
     } else {
-      // Jika berganti hari, cek apakah target kemarin tercapai untuk kalkulasi streak
       if (lastDateStr != null) {
         final int previousAmount = prefs.getInt(_keyCurrentAmount) ?? 0;
-        if (previousAmount >= _dailyGoalMl) {
-          _streakDays += 1;
-        } else {
-          _streakDays = 0; // Streak terputus jika target tidak tercapai
-        }
+        _streakDays = previousAmount >= _dailyGoalMl ? _streakDays + 1 : 0;
         await prefs.setInt(_keyStreak, _streakDays);
       }
 
-      // Reset hitungan harian untuk hari yang baru
       _currentAmountMl = 0;
       _logs = [];
       await prefs.setString(_keyLastDate, todayStr);
@@ -67,14 +67,79 @@ class WaterController extends ChangeNotifier {
       await prefs.setStringList(_keyLogs, []);
     }
 
+    await prefs.setStringList(
+      _keyHistoryLogs,
+      _historyLogs.map((log) => log.toJson()).toList(),
+    );
+
     _isLoading = false;
     notifyListeners();
   }
 
-  // 2. Menambah air minum
+  /// Salin data dari penyimpanan versi lama hanya sekali ke profil pertama.
+  Future<void> _migrateOldWaterDataIfNeeded(SharedPreferences prefs) async {
+    const migrationFlag = 'hydrotracker_legacy_water_data_migrated';
+    if (prefs.getBool(migrationFlag) ?? false) return;
+
+    if (!prefs.containsKey(_keyDailyGoal) && prefs.containsKey('daily_goal_ml')) {
+      await prefs.setInt(_keyDailyGoal, prefs.getInt('daily_goal_ml')!);
+    }
+    if (!prefs.containsKey(_keyCurrentAmount) && prefs.containsKey('current_amount_ml')) {
+      await prefs.setInt(_keyCurrentAmount, prefs.getInt('current_amount_ml')!);
+    }
+    if (!prefs.containsKey(_keyStreak) && prefs.containsKey('streak_days')) {
+      await prefs.setInt(_keyStreak, prefs.getInt('streak_days')!);
+    }
+    if (!prefs.containsKey(_keyLastDate) && prefs.containsKey('last_date')) {
+      await prefs.setString(_keyLastDate, prefs.getString('last_date')!);
+    }
+    if (!prefs.containsKey(_keyLogs) && prefs.containsKey('water_logs')) {
+      await prefs.setStringList(_keyLogs, prefs.getStringList('water_logs') ?? []);
+    }
+    if (!prefs.containsKey(_keyHistoryLogs) && prefs.containsKey('water_logs_history')) {
+      await prefs.setStringList(
+        _keyHistoryLogs,
+        prefs.getStringList('water_logs_history') ?? [],
+      );
+    }
+
+    await prefs.setBool(migrationFlag, true);
+  }
+
+  List<WaterLog> _decodeLogs(List<String> jsonLogs) {
+    final List<WaterLog> decoded = [];
+    for (final item in jsonLogs) {
+      try {
+        decoded.add(WaterLog.fromJson(item));
+      } catch (_) {
+        // Abaikan catatan rusak agar data lain tetap bisa dimuat.
+      }
+    }
+    return decoded;
+  }
+
+  void _mergeIntoHistory(Iterable<WaterLog> logsToMerge) {
+    final ids = _historyLogs.map((log) => log.id).toSet();
+    for (final log in logsToMerge) {
+      if (ids.add(log.id)) _historyLogs.add(log);
+    }
+    _historyLogs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  int totalForDate(DateTime date) {
+    return _historyLogs.where((log) {
+      final localDate = log.timestamp.toLocal();
+      return localDate.year == date.year &&
+          localDate.month == date.month &&
+          localDate.day == date.day;
+    }).fold<int>(0, (total, log) => total + log.amountMl);
+  }
+
   Future<void> addWater(int amountMl, {String drinkType = 'Air Putih'}) async {
+    if (amountMl <= 0) return;
+
     final newLog = WaterLog(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
       amountMl: amountMl,
       timestamp: DateTime.now(),
       drinkType: drinkType,
@@ -82,45 +147,42 @@ class WaterController extends ChangeNotifier {
 
     _currentAmountMl += amountMl;
     _logs.insert(0, newLog);
-
+    _historyLogs.insert(0, newLog);
     notifyListeners();
     await _saveToPrefs();
   }
 
-  // 3. Menghapus salah satu catatan minum (Undo/Delete)
   Future<void> deleteLog(String id) async {
     final index = _logs.indexWhere((log) => log.id == id);
-    if (index != -1) {
-      _currentAmountMl = (_currentAmountMl - _logs[index].amountMl).clamp(0, double.infinity).toInt();
-      _logs.removeAt(index);
+    if (index == -1) return;
 
-      notifyListeners();
-      await _saveToPrefs();
-    }
+    _currentAmountMl =
+        (_currentAmountMl - _logs[index].amountMl).clamp(0, 1 << 31).toInt();
+    _logs.removeAt(index);
+    _historyLogs.removeWhere((log) => log.id == id);
+    notifyListeners();
+    await _saveToPrefs();
   }
 
-  // 4. Mengubah target harian (misal dari halaman Settings atau Onboarding)
   Future<void> updateDailyGoal(int newGoalMl) async {
+    if (newGoalMl <= 0) return;
     _dailyGoalMl = newGoalMl;
     notifyListeners();
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyDailyGoal, newGoalMl);
   }
 
-  // Helper untuk menyimpan perubahan ke SharedPreferences
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.setInt(_keyCurrentAmount, _currentAmountMl);
     await prefs.setString(_keyLastDate, _formatDate(DateTime.now()));
-
-    final List<String> logsJson = _logs.map((log) => log.toJson()).toList();
-    await prefs.setStringList(_keyLogs, logsJson);
+    await prefs.setStringList(_keyLogs, _logs.map((log) => log.toJson()).toList());
+    await prefs.setStringList(
+      _keyHistoryLogs,
+      _historyLogs.map((log) => log.toJson()).toList(),
+    );
   }
 
-  // Helper format tanggal sederhana (YYYY-MM-DD)
-  String _formatDate(DateTime date) {
-    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-  }
+  String _formatDate(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }

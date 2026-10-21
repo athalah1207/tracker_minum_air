@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../controllers/water_controller.dart';
+import 'alarm_dialog.dart';
 import '../models/water_log.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  final WaterController controller;
+
+  const HomeView({
+    super.key,
+    required this.controller,
+  });
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -16,15 +22,8 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    _controller = WaterController();
+    _controller = widget.controller;
   }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   // Helper format jam
   String _formatTime(DateTime time) {
     final hour = time.hour.toString().padLeft(2, '0');
@@ -58,12 +57,23 @@ class _HomeViewState extends State<HomeView> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             actions: [
-              // Badge Streak Hari
+              // 1. TAMBAHKAN TOMBOL ALARM DI SINI
+              IconButton(
+                icon: const Icon(Icons.alarm_rounded),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const AlarmDialog(),
+                  );
+                },
+              ),
+
+              // 2. Badge Streak Hari (Kode bawaanmu yang sudah ada)
               Container(
                 margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -154,7 +164,7 @@ class _HomeViewState extends State<HomeView> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -246,48 +256,83 @@ class _HomeViewState extends State<HomeView> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _quickAddCard(200, Icons.local_drink),
-        _quickAddCard(300, Icons.water_full),
+        _quickAddCard(300, Icons.water_drop),
         _quickAddCard(500, Icons.sports_bar_outlined),
       ],
     );
   }
 
-  Widget _quickAddCard(int amount, IconData icon) {
-    return InkWell(
-      onTap: () => _controller.addWater(amount),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 95,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primary.withOpacity(0.15)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+
+Widget _quickAddCard(int amount, IconData icon) {
+  final int remainingMl = (
+    _controller.dailyGoalMl - _controller.currentAmountMl
+  ).clamp(0, _controller.dailyGoalMl).toInt();
+
+  return InkWell(
+    onTap: () {
+      if (remainingMl <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Target minum harian sudah tercapai!',
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.primary, size: 26),
-            const SizedBox(height: 8),
-            Text(
-              '+$amount ml',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-                fontSize: 14,
-              ),
+          ),
+        );
+        return;
+      }
+
+      // Jangan menambahkan air melebihi target harian.
+      final int amountToAdd =
+          amount > remainingMl ? remainingMl : amount;
+
+      _controller.addWater(amountToAdd);
+
+      if (amountToAdd < amount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Sisa target hanya $remainingMl ml. '
+              'Ditambahkan $amountToAdd ml.',
             ),
-          ],
+          ),
+        );
+      }
+    },
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      width: 95,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.15),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-    );
-  }
+      child: Column(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 26),
+          const SizedBox(height: 8),
+          Text(
+            '+$amount ml',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   Widget _buildLogList() {
     final logs = _controller.logs;

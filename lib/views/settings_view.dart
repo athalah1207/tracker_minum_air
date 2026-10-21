@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../constants/app_colors.dart';
 import '../controllers/water_controller.dart';
 import '../models/user_profile.dart';
+import '../services/notification_service.dart';
+import '../services/profile_storage_service.dart';
 
 class SettingsView extends StatefulWidget {
   final WaterController waterController;
+  final UserProfile profile;
+  final VoidCallback onLogout;
 
   const SettingsView({
     super.key,
     required this.waterController,
+    required this.profile,
+    required this.onLogout,
   });
 
   @override
@@ -17,16 +24,23 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  late TextEditingController _goalController;
+  late final TextEditingController _nameController;
+  late final TextEditingController _goalController;
   double _weightKg = 60.0;
-  bool _isNotificationEnabled = true;
+  bool _autoGoalFromWeight = false;
+  bool _isNotificationEnabled = false;
   int _intervalHours = 2;
-  TimeOfDay _startTime = const TimeOfDay(hour: 7, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 21, minute: 0);
+  TimeOfDay _startTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 22, minute: 0);
+  bool _isSaving = false;
+
+  String get _autoGoalKey => 'profile_${widget.profile.id}_auto_goal_from_weight';
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(text: widget.profile.name);
+    _weightKg = widget.profile.weightKg.clamp(30.0, 150.0).toDouble();
     _goalController = TextEditingController(
       text: widget.waterController.dailyGoalMl.toString(),
     );
@@ -35,69 +49,152 @@ class _SettingsViewState extends State<SettingsView> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _goalController.dispose();
     super.dispose();
   }
 
-  // Memuat pengaturan notifikasi & profil dari SharedPreferences
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _weightKg = prefs.getDouble('user_weight_kg') ?? 60.0;
-      _isNotificationEnabled = prefs.getBool('notif_enabled') ?? true;
-      _intervalHours = prefs.getInt('notif_interval') ?? 2;
-      
-      final startHour = prefs.getInt('notif_start_hour') ?? 7;
-      final startMin = prefs.getInt('notif_start_min') ?? 0;
-      _startTime = TimeOfDay(hour: startHour, minute: startMin);
+    if (!mounted) return;
 
-      final endHour = prefs.getInt('notif_end_hour') ?? 21;
-      final endMin = prefs.getInt('notif_end_min') ?? 0;
-      _endTime = TimeOfDay(hour: endHour, minute: endMin);
+    setState(() {
+      _nameController.text = widget.profile.name;
+      _weightKg = widget.profile.weightKg.clamp(30.0, 150.0).toDouble();
+      _autoGoalFromWeight = prefs.getBool(_autoGoalKey) ?? false;
+      _isNotificationEnabled = prefs.getBool('alarm_active') ?? false;
+      _intervalHours = prefs.getInt('alarm_interval') ?? 2;
+      if (![1, 2, 3, 4].contains(_intervalHours)) _intervalHours = 2;
+      _startTime = TimeOfDay(
+        hour: prefs.getInt('alarm_start_hour') ?? 8,
+        minute: prefs.getInt('alarm_start_min') ?? 0,
+      );
+      _endTime = TimeOfDay(
+        hour: prefs.getInt('alarm_end_hour') ?? 22,
+        minute: prefs.getInt('alarm_end_min') ?? 0,
+      );
+      _goalController.text = _autoGoalFromWeight
+          ? UserProfile.calculateGoal(_weightKg).toString()
+          : widget.waterController.dailyGoalMl.toString();
     });
   }
 
-  // Menyimpan perubahan pengaturan
-  Future<void> _saveSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('user_weight_kg', _weightKg);
-    await prefs.setBool('notif_enabled', _isNotificationEnabled);
-    await prefs.setInt('notif_interval', _intervalHours);
-    await prefs.setInt('notif_start_hour', _startTime.hour);
-    await prefs.setInt('notif_start_min', _startTime.minute);
-    await prefs.setInt('notif_end_hour', _endTime.hour);
-    await prefs.setInt('notif_end_min', _endTime.minute);
-
-    final newGoal = int.tryParse(_goalController.text) ?? widget.waterController.dailyGoalMl;
-    await widget.waterController.updateDailyGoal(newGoal);
-
+  void _showMessage(String message, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pengaturan berhasil disimpan!'),
-        backgroundColor: AppColors.primary,
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade700 : AppColors.primary,
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  // Picker Waktu
+  Future<void> _saveSettings() async {
+    if (_isSaving) return;
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      _showMessage('Nama pengguna harus diisi.', isError: true);
+      return;
+    }
+
+    final parsedGoal = int.tryParse(_goalController.text.trim());
+    final newGoal = _autoGoalFromWeight
+        ? UserProfile.calculateGoal(_weightKg)
+        : parsedGoal;
+    if (newGoal == null || newGoal <= 0 || newGoal > 100000) {
+      _showMessage('Masukkan target minum yang valid dalam ml.', isError: true);
+      return;
+    }
+
+    final startMinutes = _startTime.hour * 60 + _startTime.minute;
+    final endMinutes = _endTime.hour * 60 + _endTime.minute;
+    if (_isNotificationEnabled && endMinutes <= startMinutes) {
+      _showMessage('Jam selesai harus setelah jam mulai.', isError: true);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      widget.profile
+        ..name = name
+        ..weightKg = _weightKg
+        ..dailyGoalMl = newGoal;
+
+      await ProfileStorageService().saveProfile(widget.profile);
+      await prefs.setBool(_autoGoalKey, _autoGoalFromWeight);
+      // Pengingat menggunakan notifikasi lokal perangkat, sehingga tidak perlu database online.
+      await prefs.setBool('alarm_active', _isNotificationEnabled);
+      await prefs.setInt('alarm_interval', _intervalHours);
+      await prefs.setInt('alarm_start_hour', _startTime.hour);
+      await prefs.setInt('alarm_start_min', _startTime.minute);
+      await prefs.setInt('alarm_end_hour', _endTime.hour);
+      await prefs.setInt('alarm_end_min', _endTime.minute);
+      await widget.waterController.updateDailyGoal(newGoal);
+
+      final notificationService = NotificationService();
+      if (_isNotificationEnabled) {
+        final granted = await notificationService.requestPermissions();
+        await notificationService.scheduleWaterReminders(
+          intervalHours: _intervalHours,
+          startTime: _startTime,
+          endTime: _endTime,
+        );
+        _showMessage(granted
+            ? 'Profil, target, dan alarm berhasil disimpan.'
+            : 'Profil tersimpan. Izinkan notifikasi melalui pengaturan Android.');
+      } else {
+        await notificationService.cancelAllNotifications();
+        _showMessage('Profil dan target tersimpan. Alarm dimatikan.');
+      }
+      _goalController.text = newGoal.toString();
+    } catch (error) {
+      _showMessage('Pengaturan tersimpan sebagian. Periksa alarm: $error', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   Future<void> _selectTime(bool isStart) async {
-    final initial = isStart ? _startTime : _endTime;
     final picked = await showTimePicker(
       context: context,
-      initialTime: initial,
+      initialTime: isStart ? _startTime : _endTime,
     );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (isStart) {
+        _startTime = picked;
+      } else {
+        _endTime = picked;
+      }
+    });
+  }
 
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _startTime = picked;
-        } else {
-          _endTime = picked;
-        }
-      });
-    }
+  Future<void> _confirmLogout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Ganti Profil?'),
+        content: Text('Keluar dari profil ${widget.profile.name} dan kembali ke pilihan profil?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text('Keluar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogout == true && mounted) widget.onLogout();
   }
 
   @override
@@ -105,95 +202,115 @@ class _SettingsViewState extends State<SettingsView> {
     return Scaffold(
       backgroundColor: AppColors.lightBlue,
       appBar: AppBar(
-        title: const Text(
-          'Pengaturan & Profil',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Pengaturan', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.lightBlue,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Seksi Profil & Target Air
-            _buildSectionHeader('Profil & Target Air'),
+            _buildSectionHeader('Profil Pengguna'),
             const SizedBox(height: 12),
             _buildProfileCard(),
-
             const SizedBox(height: 28),
-
-            // 2. Seksi Notifikasi Pengingat
             _buildSectionHeader('Pengingat Minum'),
             const SizedBox(height: 12),
             _buildNotificationCard(),
-
-            const SizedBox(height: 36),
-
-            // 3. Tombol Simpan
+            const SizedBox(height: 22),
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton.icon(
-                onPressed: _saveSettings,
-                icon: const Icon(Icons.save_rounded, color: Colors.white),
-                label: const Text(
-                  'Simpan Perubahan',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                onPressed: _isSaving ? null : _saveSettings,
+                icon: _isSaving
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.save_rounded),
+                label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Perubahan', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            _buildSectionHeader('Akun di Perangkat Ini'),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Keluar tidak menghapus profil atau riwayat minum. Kamu bisa memilih profil lain dari halaman awal.', style: TextStyle(color: AppColors.textMuted, height: 1.4)),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _confirmLogout,
+                      icon: const Icon(Icons.logout_rounded),
+                      label: const Text('Keluar / Ganti Profil'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red.shade700,
+                        side: BorderSide(color: Colors.red.shade200),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textDark,
-      ),
-    );
-  }
+  Widget _buildSectionHeader(String title) => Text(
+        title,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+      );
 
   Widget _buildProfileCard() {
+    final initial = widget.profile.name.trim().isEmpty
+        ? '?'
+        : widget.profile.name.trim().substring(0, 1).toUpperCase();
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Slider BB
+          Center(
+            child: CircleAvatar(
+              radius: 34,
+              backgroundColor: AppColors.lightBlue,
+              child: Text(initial, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text('Nama', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _nameController,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              hintText: 'Masukkan nama kamu',
+              prefixIcon: const Icon(Icons.badge_outlined),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Berat Badan',
-                style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark),
-              ),
-              Text(
-                '${_weightKg.toStringAsFixed(0)} kg',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                  fontSize: 16,
-                ),
-              ),
+              const Text('Berat Badan', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+              Text('${_weightKg.toStringAsFixed(0)} kg', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 16)),
             ],
           ),
           Slider(
@@ -203,43 +320,34 @@ class _SettingsViewState extends State<SettingsView> {
             divisions: 120,
             activeColor: AppColors.primary,
             inactiveColor: AppColors.lightBlue,
-            onChanged: (val) {
-              setState(() {
-                _weightKg = val;
-                // Hitung ulang otomatis untuk saran di TextField Target
-                final autoGoal = UserProfile.calculateGoal(val);
-                _goalController.text = autoGoal.toString();
-              });
-            },
+            onChanged: (value) => setState(() {
+              _weightKg = value;
+              if (_autoGoalFromWeight) _goalController.text = UserProfile.calculateGoal(value).toString();
+            }),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Hitung target dari berat badan', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            subtitle: const Text('Estimasi awal: berat badan × 35 ml', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            value: _autoGoalFromWeight,
+            activeThumbColor: AppColors.primary,
+            onChanged: (value) => setState(() {
+              _autoGoalFromWeight = value;
+              if (value) _goalController.text = UserProfile.calculateGoal(_weightKg).toString();
+            }),
           ),
           const Divider(height: 24),
-
-          // Input Manual Target Harian
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Target Harian (ml)',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark),
-                ),
-              ),
-              SizedBox(
-                width: 110,
-                child: TextField(
-                  controller: _goalController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    suffixText: 'ml',
-                  ),
-                ),
-              ),
-            ],
+          const Text('Target Harian', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _goalController,
+            enabled: !_autoGoalFromWeight,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              suffixText: 'ml',
+              helperText: _autoGoalFromWeight ? 'Dihitung otomatis dari berat badan.' : 'Masukkan target harian dalam mililiter.',
+            ),
           ),
         ],
       ),
@@ -249,41 +357,23 @@ class _SettingsViewState extends State<SettingsView> {
   Widget _buildNotificationCard() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          // Toggle Notifikasi
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Aktifkan Notifikasi',
-              style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark),
-            ),
-            subtitle: const Text(
-              'Ingatkan saya untuk minum secara teratur',
-              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
-            ),
+            title: const Text('Aktifkan Alarm', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            subtitle: const Text('Pengingat melalui notifikasi secara berkala', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
             value: _isNotificationEnabled,
-            activeColor: AppColors.primary,
-            onChanged: (val) {
-              setState(() => _isNotificationEnabled = val);
-            },
+            activeThumbColor: AppColors.primary,
+            onChanged: (value) => setState(() => _isNotificationEnabled = value),
           ),
-
           if (_isNotificationEnabled) ...[
             const Divider(height: 20),
-
-            // Dropdown Interval
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Interval Pengingat',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark),
-                ),
+                const Text('Interval Pengingat', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 DropdownButton<int>(
                   value: _intervalHours,
                   underline: const SizedBox(),
@@ -293,18 +383,11 @@ class _SettingsViewState extends State<SettingsView> {
                     DropdownMenuItem(value: 3, child: Text('Setiap 3 Jam')),
                     DropdownMenuItem(value: 4, child: Text('Setiap 4 Jam')),
                   ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() => _intervalHours = val);
-                    }
-                  },
+                  onChanged: (value) { if (value != null) setState(() => _intervalHours = value); },
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            // Jadwal Jam Mulai & Selesai
             Row(
               children: [
                 Expanded(
@@ -312,10 +395,6 @@ class _SettingsViewState extends State<SettingsView> {
                     onPressed: () => _selectTime(true),
                     icon: const Icon(Icons.access_time, size: 18),
                     label: Text('Mulai: ${_startTime.format(context)}'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textDark,
-                      side: BorderSide(color: Colors.grey.shade300),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -324,10 +403,6 @@ class _SettingsViewState extends State<SettingsView> {
                     onPressed: () => _selectTime(false),
                     icon: const Icon(Icons.access_time_filled, size: 18),
                     label: Text('Selesai: ${_endTime.format(context)}'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textDark,
-                      side: BorderSide(color: Colors.grey.shade300),
-                    ),
                   ),
                 ),
               ],
