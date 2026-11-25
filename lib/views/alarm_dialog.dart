@@ -93,12 +93,16 @@ class _AlarmDialogState extends State<AlarmDialog> {
       final service = NotificationService();
       var notificationsGranted = true;
       if (_isAlarmActive) {
-        notificationsGranted = await service.requestPermissions();
-        await service.scheduleWaterReminders(
-          intervalHours: _intervalHours,
-          startTime: _startTime,
-          endTime: _endTime,
-        );
+        if (service.supportsScheduledReminders) {
+          notificationsGranted = await service.requestPermissions();
+          await service.scheduleWaterReminders(
+            intervalHours: _intervalHours,
+            startTime: _startTime,
+            endTime: _endTime,
+          );
+        } else {
+          notificationsGranted = false;
+        }
       } else {
         await service.cancelAllNotifications();
       }
@@ -110,9 +114,11 @@ class _AlarmDialogState extends State<AlarmDialog> {
         SnackBar(
           content: Text(!_isAlarmActive
               ? 'Alarm dimatikan.'
-              : notificationsGranted
-                  ? 'Alarm aktif. Pengingat dijadwalkan setiap $_intervalHours jam.'
-                  : 'Jadwal tersimpan, tetapi izin notifikasi Android belum diberikan.'),
+              : !service.supportsScheduledReminders
+                  ? 'Pengaturan tersimpan, tetapi alarm terjadwal belum didukung di browser. Gunakan aplikasi Android.'
+                  : notificationsGranted
+                      ? 'Alarm aktif. Pengingat dijadwalkan setiap $_intervalHours jam.'
+                      : 'Jadwal tersimpan, tetapi izin notifikasi Android belum diberikan.'),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
         ),

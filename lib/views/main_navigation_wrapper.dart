@@ -59,17 +59,19 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
+          color: AppColors.cardBg,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
+              color: AppColors.primaryDark.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, -5),
             ),
           ],
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
+        child: NavigationBar(
+          height: 74,
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
             setState(() {
               _currentIndex = index;
               if (index == 2) {
@@ -78,26 +80,23 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               }
             });
           },
-          backgroundColor: Colors.white,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMuted,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontSize: 12),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
+          backgroundColor: AppColors.cardBg,
+          indicatorColor: AppColors.softBlue,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: const [
+            NavigationDestination(
               icon: Icon(Icons.water_drop_outlined),
-              activeIcon: Icon(Icons.water_drop_rounded),
+              selectedIcon: Icon(Icons.water_drop_rounded),
               label: 'Beranda',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.bar_chart_outlined),
-              activeIcon: Icon(Icons.bar_chart_rounded),
+              selectedIcon: Icon(Icons.bar_chart_rounded),
               label: 'Statistik',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings_rounded),
+              selectedIcon: Icon(Icons.settings_rounded),
               label: 'Pengaturan',
             ),
           ],

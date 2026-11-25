@@ -134,23 +134,38 @@ class _SettingsViewState extends State<SettingsView> {
       await widget.waterController.updateDailyGoal(newGoal);
 
       final notificationService = NotificationService();
-      if (_isNotificationEnabled) {
-        final granted = await notificationService.requestPermissions();
-        await notificationService.scheduleWaterReminders(
-          intervalHours: _intervalHours,
-          startTime: _startTime,
-          endTime: _endTime,
+      try {
+        if (_isNotificationEnabled) {
+          if (!notificationService.supportsScheduledReminders) {
+            _showMessage(
+              'Profil dan target tersimpan. Alarm terjadwal belum didukung di browser; gunakan aplikasi Android.',
+              isError: true,
+            );
+          } else {
+            final granted = await notificationService.requestPermissions();
+            await notificationService.scheduleWaterReminders(
+              intervalHours: _intervalHours,
+              startTime: _startTime,
+              endTime: _endTime,
+            );
+            _showMessage(granted
+                ? 'Profil, target, dan alarm berhasil disimpan.'
+                : 'Profil tersimpan. Izinkan notifikasi melalui pengaturan Android.');
+          }
+        } else {
+          await notificationService.cancelAllNotifications();
+          _showMessage('Profil dan target tersimpan. Alarm dimatikan.');
+        }
+      } catch (alarmError) {
+        _showMessage(
+          'Profil dan target tersimpan, tetapi alarm gagal diatur: $alarmError',
+          isError: true,
         );
-        _showMessage(granted
-            ? 'Profil, target, dan alarm berhasil disimpan.'
-            : 'Profil tersimpan. Izinkan notifikasi melalui pengaturan Android.');
-      } else {
-        await notificationService.cancelAllNotifications();
-        _showMessage('Profil dan target tersimpan. Alarm dimatikan.');
       }
+
       _goalController.text = newGoal.toString();
     } catch (error) {
-      _showMessage('Pengaturan tersimpan sebagian. Periksa alarm: $error', isError: true);
+      _showMessage('Pengaturan gagal disimpan: $error', isError: true);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

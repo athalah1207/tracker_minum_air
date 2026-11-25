@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
 
+/// Palet warna HydroTracker: biru air yang cerah, bersih, dan tetap nyaman
+/// dilihat dalam penggunaan sehari-hari.
 class AppColors {
-  // Biru Elektrik Utama (Sangat tajam dan hidup)
-  static const Color primary = Color(0xFF0066FF);
-  
-  // Biru Gelap untuk Teks/Header penting
-  static const Color primaryDark = Color(0xFF003CB3);
-  
-  // Cyan Terang (Aksen segar untuk target/ikon)
-  static const Color accent = Color(0xFF00E5FF);
-  
-  // Background Ice Blue yang cerah dan bersih (tidak pudar)
-  static const Color lightBlue = Color(0xFFF0F5FF);
-  
-  // Warna Card Putih Bersih (Kontras maksimal dengan background)
-  static const Color cardBg = Color(0xFFFFFFFF);
-  
-  // Teks Utama (Gelap pekat agar mudah dibaca)
-  static const Color textDark = Color(0xFF090D16);
-  
-  // Teks Sekunder / Muted
-  static const Color textMuted = Color(0xFF64748B);
+  // Biru air utama. Cukup pekat agar teks putih pada tombol tetap terbaca.
+  static const Color primary = Color(0xFF087FB4);
 
-  // Gradien Utama untuk Tombol / Header (Biar keliatan mahal & segar)
+  // Biru lebih dalam untuk judul/aksen yang membutuhkan kontras tambahan.
+  static const Color primaryDark = Color(0xFF075B82);
+
+  // Cyan cerah untuk indikator hidrasi, ikon, dan progres.
+  static const Color accent = Color(0xFF25BDE5);
+  static const Color aqua = Color(0xFF18B8C8);
+
+  // Latar biru air yang lebih terasa dibanding warna ice-blue sebelumnya.
+  static const Color lightBlue = Color(0xFFE1F5FD);
+  static const Color softBlue = Color(0xFFCCEFFB);
+  static const Color borderBlue = Color(0xFFC5E7F4);
+
+  static const Color cardBg = Color(0xFFFFFFFF);
+  static const Color textDark = Color(0xFF123244);
+  static const Color textMuted = Color(0xFF587789);
+
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF0066FF), Color(0xFF00E5FF)],
+    colors: [Color(0xFF087FB4), Color(0xFF25BDE5)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

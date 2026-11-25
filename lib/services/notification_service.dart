@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -13,33 +14,60 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  Future<void>? _initialization;
 
-  Future<void> init() async {
-    if (_initialized) return;
+  /// Pengingat terjadwal dari plugin ini hanya dijalankan pada aplikasi native.
+  /// Browser tidak mendukung notifikasi terjadwal/berulang melalui API ini.
+  bool get supportsScheduledReminders => !kIsWeb;
 
-    tz_data.initializeTimeZones();
-    // Aplikasi ini menggunakan waktu Indonesia Barat (WIB).
-    // Jika aplikasi nantinya digunakan di wilayah lain, ganti dengan zona perangkat.
-    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+  Future<void> init() {
+    // Jangan menyentuh instance plugin native saat aplikasi berjalan di browser.
+    // Ini mencegah LateInitializationError pada implementasi platform yang tidak
+    // tersedia di build web.
+    if (kIsWeb) {
+      _initialized = true;
+      return Future<void>.value();
+    }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const settings = InitializationSettings(
-      android: androidSettings,
-      iOS: darwinSettings,
-    );
+    if (_initialized) return Future<void>.value();
 
-    await _notificationsPlugin.initialize(settings);
-    _initialized = true;
+    // Gunakan satu Future agar beberapa pemanggilan init bersamaan tidak
+    // menginisialisasi plugin dua kali.
+    return _initialization ??= _initialize();
+  }
+
+  Future<void> _initialize() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    try {
+      tz_data.initializeTimeZones();
+      // Aplikasi ini menggunakan waktu Indonesia Barat (WIB).
+      tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+
+      const androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const darwinSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      const settings = InitializationSettings(
+        android: androidSettings,
+        iOS: darwinSettings,
+      );
+
+      await _notificationsPlugin.initialize(settings);
+      _initialized = true;
+    } catch (_) {
+      _initialization = null;
+      rethrow;
+    }
   }
 
   /// Meminta izin notifikasi dan izin alarm presisi jika Android mendukungnya.
   /// Nilai kembali menunjukkan apakah izin notifikasi diberikan.
   Future<bool> requestPermissions() async {
+    if (kIsWeb) return false;
     if (!_initialized) await init();
 
     final androidImplementation = _notificationsPlugin
@@ -61,6 +89,7 @@ class NotificationService {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
   }) async {
+    if (kIsWeb) return;
     if (!_initialized) await init();
     if (intervalHours < 1) {
       throw ArgumentError.value(intervalHours, 'intervalHours', 'Harus minimal 1 jam.');
@@ -158,6 +187,7 @@ class NotificationService {
   }
 
   Future<void> cancelAllNotifications() async {
+    if (kIsWeb) return;
     if (!_initialized) await init();
     await _notificationsPlugin.cancelAll();
   }
