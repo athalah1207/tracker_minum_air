@@ -63,36 +63,36 @@ class _CreateProfileViewState extends State<CreateProfileView> {
       backgroundColor: AppColors.lightBlue,
       appBar: AppBar(
         backgroundColor: AppColors.lightBlue,
-        title: const Text('Buat Profil Baru', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Buat Profil Baru', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(20)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Center(
+                    Center(
                       child: CircleAvatar(
                         radius: 36,
                         backgroundColor: AppColors.lightBlue,
                         child: Icon(Icons.person_add_alt_1_rounded, size: 38, color: AppColors.primary),
                       ),
                     ),
-                    const SizedBox(height: 22),
-                    const Text('Nama pengguna', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 22),
+                    Text('Nama pengguna', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
                       textCapitalization: TextCapitalization.words,
                       decoration: InputDecoration(
                         hintText: 'Contoh: Athalah',
-                        prefixIcon: const Icon(Icons.person_outline),
+                        prefixIcon: Icon(Icons.person_outline),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       validator: (value) {
@@ -101,12 +101,12 @@ class _CreateProfileViewState extends State<CreateProfileView> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Berat badan', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('${_weightKg.toStringAsFixed(0)} kg', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 17)),
+                        Text('Berat badan', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('${_weightKg.toStringAsFixed(0)} kg', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 17)),
                       ],
                     ),
                     Slider(
@@ -118,10 +118,10 @@ class _CreateProfileViewState extends State<CreateProfileView> {
                       activeColor: AppColors.primary,
                       onChanged: (value) => setState(() => _weightKg = value),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppColors.lightBlue,
                         borderRadius: BorderRadius.circular(14),
@@ -129,18 +129,18 @@ class _CreateProfileViewState extends State<CreateProfileView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Perkiraan target minum harian', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                          const SizedBox(height: 4),
-                          Text('$_goalMl ml / hari', style: const TextStyle(color: AppColors.textDark, fontSize: 24, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          const Text('Estimasi awal: berat badan × 35 ml. Target dapat diubah nanti melalui Pengaturan.', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          Text('Perkiraan target minum harian', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                          SizedBox(height: 4),
+                          Text('$_goalMl ml / hari', style: TextStyle(color: AppColors.textDark, fontSize: 24, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 4),
+                          Text('Estimasi awal: berat badan × 35 ml. Target dapat diubah nanti melalui Pengaturan.', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
@@ -151,8 +151,8 @@ class _CreateProfileViewState extends State<CreateProfileView> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: _isSaving
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Simpan dan Mulai', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text('Simpan dan Mulai', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

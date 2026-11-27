@@ -69,7 +69,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           onLogout: () => Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const OnboardingView()),
+            MaterialPageRoute(builder: (context) => OnboardingView()),
           ),
         ),
       ),
@@ -81,7 +81,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Silakan isi nama kamu terlebih dahulu!'),
           backgroundColor: Colors.redAccent,
         ),
@@ -118,7 +118,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           onLogout: () => Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const OnboardingView()),
+            MaterialPageRoute(builder: (context) => OnboardingView()),
           ),
         ),
       ),
@@ -131,38 +131,38 @@ class _OnboardingViewState extends State<OnboardingView> {
       backgroundColor: AppColors.lightBlue,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
 
               // 1. Hero Icon / Ilustrasi
               Container(
                 width: 90,
                 height: 90,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBg,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primary.withValues(alpha: 0.15),
                       blurRadius: 20,
-                      offset: const Offset(0, 8),
+                      offset: Offset(0, 8),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.water_drop_rounded,
                   size: 50,
                   color: AppColors.primary,
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 2. Judul & Subjudul
-              const Text(
+              Text(
                 'Selamat Datang di HydroTracker',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -171,8 +171,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                   color: AppColors.textDark,
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              SizedBox(height: 6),
+              Text(
                 'Buat profil baru atau pilih akun tersimpan.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -181,7 +181,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 3. Opsi Pilih Akun Tersimpan (Jika Ada)
               if (_savedAccounts.isNotEmpty) ...[
@@ -196,7 +196,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 SizedBox(
                   height: 44,
                   child: ListView.builder(
@@ -205,20 +205,20 @@ class _OnboardingViewState extends State<OnboardingView> {
                     itemBuilder: (context, index) {
                       final name = _savedAccounts[index];
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
+                        padding: EdgeInsets.only(right: 8.0),
                         child: ActionChip(
-                          avatar: const Icon(Icons.person, size: 18, color: AppColors.primary),
-                          label: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          backgroundColor: Colors.white,
-                          side: const BorderSide(color: AppColors.primary),
+                          avatar: Icon(Icons.person, size: 18, color: AppColors.primary),
+                          label: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
+                          backgroundColor: AppColors.cardBg,
+                          side: BorderSide(color: AppColors.primary),
                           onPressed: () => _selectExistingAccount(name),
                         ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Row(
+                SizedBox(height: 20),
+                Row(
                   children: [
                     Expanded(child: Divider()),
                     Padding(
@@ -228,26 +228,26 @@ class _OnboardingViewState extends State<OnboardingView> {
                     Expanded(child: Divider()),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
 
               // 4. Form Input Nama
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBg,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
                 child: TextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: 'Masukkan nama kamu...',
                     border: InputBorder.none,
                     icon: Icon(Icons.person_outline_rounded, color: AppColors.primary),
@@ -255,25 +255,25 @@ class _OnboardingViewState extends State<OnboardingView> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // 5. Card Input Berat Badan
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBg,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 16,
-                      offset: const Offset(0, 6),
+                      offset: Offset(0, 6),
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'Berat Badan Saat Ini',
                       style: TextStyle(
                         fontSize: 14,
@@ -281,7 +281,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                         color: AppColors.textMuted,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -290,14 +290,14 @@ class _OnboardingViewState extends State<OnboardingView> {
                       children: [
                         Text(
                           _weightKg.toStringAsFixed(0),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        const Text(
+                        SizedBox(width: 6),
+                        Text(
                           'kg',
                           style: TextStyle(
                             fontSize: 18,
@@ -308,7 +308,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
@@ -316,7 +316,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                         inactiveTrackColor: AppColors.lightBlue,
                         thumbColor: AppColors.primary,
                         overlayColor: AppColors.primary.withValues(alpha: 0.12),
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+                        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12),
                       ),
                       child: Slider(
                         value: _weightKg,
@@ -330,11 +330,11 @@ class _OnboardingViewState extends State<OnboardingView> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // 6. Card Hasil Kalkulasi Target Air Harian
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
@@ -343,23 +343,23 @@ class _OnboardingViewState extends State<OnboardingView> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.local_drink_rounded,
                         color: Colors.white,
                         size: 24,
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Rekomendasi Target Harian',
                             style: TextStyle(
                               fontSize: 12,
@@ -367,10 +367,10 @@ class _OnboardingViewState extends State<OnboardingView> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(
                             '$_calculatedGoalMl ml / hari',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -383,7 +383,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
               // 7. Tombol Mulai
               SizedBox(
@@ -400,7 +400,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                     ),
                   ),
                   child: _isSaving
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
@@ -408,7 +408,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                             strokeWidth: 2.5,
                           ),
                         )
-                      : const Text(
+                      : Text(
                           'Mulai Lacak Minum',
                           style: TextStyle(
                             fontSize: 16,

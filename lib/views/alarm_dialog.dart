@@ -12,8 +12,8 @@ class AlarmDialog extends StatefulWidget {
 }
 
 class _AlarmDialogState extends State<AlarmDialog> {
-  TimeOfDay _startTime = const TimeOfDay(hour: 8, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 22, minute: 0);
+  TimeOfDay _startTime = TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _endTime = TimeOfDay(hour: 22, minute: 0);
   int _intervalHours = 2;
   bool _isAlarmActive = false;
   bool _isSaving = false;
@@ -136,25 +136,25 @@ class _AlarmDialogState extends State<AlarmDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: AppColors.cardBg,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: AppColors.lightBlue,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.alarm_add_rounded,
                   color: AppColors.primary,
                   size: 36,
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16),
+              Text(
                 'Atur Alarm Minum Air',
                 style: TextStyle(
                   fontSize: 18,
@@ -162,10 +162,10 @@ class _AlarmDialogState extends State<AlarmDialog> {
                   color: AppColors.textDark,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                title: Text(
                   'Aktifkan Alarm',
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark),
                 ),
@@ -174,16 +174,16 @@ class _AlarmDialogState extends State<AlarmDialog> {
                 onChanged: (value) => setState(() => _isAlarmActive = value),
               ),
               if (_isAlarmActive) ...[
-                const Divider(),
+                Divider(),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.access_time_filled, color: AppColors.primary),
-                  title: const Text('Mulai Jam', style: TextStyle(color: AppColors.textDark)),
+                  leading: Icon(Icons.access_time_filled, color: AppColors.primary),
+                  title: Text('Mulai Jam', style: TextStyle(color: AppColors.textDark)),
                   trailing: TextButton(
                     onPressed: () => _selectTime(true),
                     child: Text(
                       _startTime.format(context),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -193,13 +193,13 @@ class _AlarmDialogState extends State<AlarmDialog> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.timer_off_outlined, color: AppColors.primary),
-                  title: const Text('Selesai Jam', style: TextStyle(color: AppColors.textDark)),
+                  leading: Icon(Icons.timer_off_outlined, color: AppColors.primary),
+                  title: Text('Selesai Jam', style: TextStyle(color: AppColors.textDark)),
                   trailing: TextButton(
                     onPressed: () => _selectTime(false),
                     child: Text(
                       _endTime.format(context),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -210,7 +210,7 @@ class _AlarmDialogState extends State<AlarmDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Icon(Icons.timer_rounded, color: AppColors.primary),
                         SizedBox(width: 8),
@@ -219,8 +219,8 @@ class _AlarmDialogState extends State<AlarmDialog> {
                     ),
                     DropdownButton<int>(
                       value: _intervalHours,
-                      underline: const SizedBox(),
-                      items: const [
+                      underline: SizedBox(),
+                      items: [
                         DropdownMenuItem(value: 1, child: Text('Setiap 1 Jam')),
                         DropdownMenuItem(value: 2, child: Text('Setiap 2 Jam')),
                         DropdownMenuItem(value: 3, child: Text('Setiap 3 Jam')),
@@ -233,7 +233,7 @@ class _AlarmDialogState extends State<AlarmDialog> {
                   ],
                 ),
               ],
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -246,7 +246,7 @@ class _AlarmDialogState extends State<AlarmDialog> {
                   ),
                   child: Text(
                     _isSaving ? 'Menyimpan...' : 'Simpan Pengaturan Alarm',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

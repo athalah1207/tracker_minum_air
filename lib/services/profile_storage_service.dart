@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 
-/// Menyimpan beberapa profil lokal di perangkat, tanpa akun server/database online.
+/// Menyimpan cache profil di perangkat agar aplikasi tetap bisa dipakai offline.
 class ProfileStorageService {
   static const String _profilesKey = 'hydrotracker_profiles_v1';
 
@@ -49,6 +49,15 @@ class ProfileStorageService {
     } else {
       profiles.add(profile);
     }
+    await prefs.setString(
+      _profilesKey,
+      jsonEncode(profiles.map((item) => item.toJson()).toList()),
+    );
+  }
+
+  /// Mengganti daftar profil lokal dengan profil yang dipulihkan dari cloud.
+  Future<void> replaceProfiles(List<UserProfile> profiles) async {
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
       _profilesKey,
       jsonEncode(profiles.map((item) => item.toJson()).toList()),

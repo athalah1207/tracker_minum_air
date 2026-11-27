@@ -4,18 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_colors.dart';
 import '../controllers/water_controller.dart';
 import '../models/user_profile.dart';
+import '../services/cloud_backup_service.dart';
 import '../services/notification_service.dart';
 import '../services/profile_storage_service.dart';
+import '../services/theme_service.dart';
 
 class SettingsView extends StatefulWidget {
   final WaterController waterController;
   final UserProfile profile;
+  final String? cloudUid;
   final VoidCallback onLogout;
 
   const SettingsView({
     super.key,
     required this.waterController,
     required this.profile,
+    this.cloudUid,
     required this.onLogout,
   });
 
@@ -30,8 +34,8 @@ class _SettingsViewState extends State<SettingsView> {
   bool _autoGoalFromWeight = false;
   bool _isNotificationEnabled = false;
   int _intervalHours = 2;
-  TimeOfDay _startTime = const TimeOfDay(hour: 8, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 22, minute: 0);
+  TimeOfDay _startTime = TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _endTime = TimeOfDay(hour: 22, minute: 0);
   bool _isSaving = false;
 
   String get _autoGoalKey => 'profile_${widget.profile.id}_auto_goal_from_weight';
@@ -132,6 +136,9 @@ class _SettingsViewState extends State<SettingsView> {
       await prefs.setInt('alarm_end_hour', _endTime.hour);
       await prefs.setInt('alarm_end_min', _endTime.minute);
       await widget.waterController.updateDailyGoal(newGoal);
+      if (widget.cloudUid != null) {
+        await CloudBackupService().syncProfile(widget.cloudUid!, widget.profile);
+      }
 
       final notificationService = NotificationService();
       try {
@@ -190,17 +197,17 @@ class _SettingsViewState extends State<SettingsView> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Ganti Profil?'),
+        title: Text('Ganti Profil?'),
         content: Text('Keluar dari profil ${widget.profile.name} dan kembali ke pilihan profil?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Batal'),
+            child: Text('Batal'),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
-            icon: const Icon(Icons.logout_rounded),
-            label: const Text('Keluar'),
+            icon: Icon(Icons.logout_rounded),
+            label: Text('Keluar'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade700,
               foregroundColor: Colors.white,
@@ -217,31 +224,35 @@ class _SettingsViewState extends State<SettingsView> {
     return Scaffold(
       backgroundColor: AppColors.lightBlue,
       appBar: AppBar(
-        title: const Text('Pengaturan', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('Pengaturan', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.lightBlue,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildSectionHeader('Tampilan'),
+            SizedBox(height: 12),
+            _buildAppearanceCard(),
+            SizedBox(height: 24),
             _buildSectionHeader('Profil Pengguna'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _buildProfileCard(),
-            const SizedBox(height: 28),
+            SizedBox(height: 28),
             _buildSectionHeader('Pengingat Minum'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _buildNotificationCard(),
-            const SizedBox(height: 22),
+            SizedBox(height: 22),
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton.icon(
                 onPressed: _isSaving ? null : _saveSettings,
                 icon: _isSaving
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.save_rounded),
-                label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Perubahan', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Icon(Icons.save_rounded),
+                label: Text(_isSaving ? 'Menyimpan...' : 'Simpan Perubahan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -249,28 +260,28 @@ class _SettingsViewState extends State<SettingsView> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _buildSectionHeader('Akun di Perangkat Ini'),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Keluar tidak menghapus profil atau riwayat minum. Kamu bisa memilih profil lain dari halaman awal.', style: TextStyle(color: AppColors.textMuted, height: 1.4)),
-                  const SizedBox(height: 14),
+                  Text('Keluar tidak menghapus profil atau riwayat minum. Kamu bisa memilih profil lain dari halaman awal.', style: TextStyle(color: AppColors.textMuted, height: 1.4)),
+                  SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: _confirmLogout,
-                      icon: const Icon(Icons.logout_rounded),
-                      label: const Text('Keluar / Ganti Profil'),
+                      icon: Icon(Icons.logout_rounded),
+                      label: Text('Keluar / Ganti Profil'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red.shade700,
                         side: BorderSide(color: Colors.red.shade200),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        padding: EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -278,7 +289,7 @@ class _SettingsViewState extends State<SettingsView> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
           ],
         ),
       ),
@@ -287,16 +298,44 @@ class _SettingsViewState extends State<SettingsView> {
 
   Widget _buildSectionHeader(String title) => Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
       );
+
+  Widget _buildAppearanceCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        secondary: Icon(Icons.dark_mode_outlined, color: AppColors.primary),
+        title: Text(
+          'Dark Mode',
+          style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark),
+        ),
+        subtitle: Text(
+          'Gunakan tampilan gelap di seluruh aplikasi',
+          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+        ),
+        value: ThemeService.instance.isDarkMode,
+        activeThumbColor: AppColors.primary,
+        onChanged: (value) async {
+          await ThemeService.instance.setDarkMode(value);
+          if (mounted) setState(() {});
+        },
+      ),
+    );
+  }
 
   Widget _buildProfileCard() {
     final initial = widget.profile.name.trim().isEmpty
         ? '?'
         : widget.profile.name.trim().substring(0, 1).toUpperCase();
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -304,28 +343,28 @@ class _SettingsViewState extends State<SettingsView> {
             child: CircleAvatar(
               radius: 34,
               backgroundColor: AppColors.lightBlue,
-              child: Text(initial, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary)),
+              child: Text(initial, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.primary)),
             ),
           ),
-          const SizedBox(height: 16),
-          const Text('Nama', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
-          const SizedBox(height: 8),
+          SizedBox(height: 16),
+          Text('Nama', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          SizedBox(height: 8),
           TextField(
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
             decoration: InputDecoration(
               hintText: 'Masukkan nama kamu',
-              prefixIcon: const Icon(Icons.badge_outlined),
+              prefixIcon: Icon(Icons.badge_outlined),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               isDense: true,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Berat Badan', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
-              Text('${_weightKg.toStringAsFixed(0)} kg', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 16)),
+              Text('Berat Badan', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+              Text('${_weightKg.toStringAsFixed(0)} kg', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 16)),
             ],
           ),
           Slider(
@@ -342,8 +381,8 @@ class _SettingsViewState extends State<SettingsView> {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Hitung target dari berat badan', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
-            subtitle: const Text('Estimasi awal: berat badan × 35 ml', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            title: Text('Hitung target dari berat badan', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            subtitle: Text('Estimasi awal: berat badan × 35 ml', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
             value: _autoGoalFromWeight,
             activeThumbColor: AppColors.primary,
             onChanged: (value) => setState(() {
@@ -351,9 +390,9 @@ class _SettingsViewState extends State<SettingsView> {
               if (value) _goalController.text = UserProfile.calculateGoal(_weightKg).toString();
             }),
           ),
-          const Divider(height: 24),
-          const Text('Target Harian', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
-          const SizedBox(height: 8),
+          Divider(height: 24),
+          Text('Target Harian', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          SizedBox(height: 8),
           TextField(
             controller: _goalController,
             enabled: !_autoGoalFromWeight,
@@ -371,28 +410,28 @@ class _SettingsViewState extends State<SettingsView> {
 
   Widget _buildNotificationCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Aktifkan Alarm', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
-            subtitle: const Text('Pengingat melalui notifikasi secara berkala', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            title: Text('Aktifkan Alarm', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            subtitle: Text('Pengingat melalui notifikasi secara berkala', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
             value: _isNotificationEnabled,
             activeThumbColor: AppColors.primary,
             onChanged: (value) => setState(() => _isNotificationEnabled = value),
           ),
           if (_isNotificationEnabled) ...[
-            const Divider(height: 20),
+            Divider(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Interval Pengingat', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                Text('Interval Pengingat', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 DropdownButton<int>(
                   value: _intervalHours,
-                  underline: const SizedBox(),
-                  items: const [
+                  underline: SizedBox(),
+                  items: [
                     DropdownMenuItem(value: 1, child: Text('Setiap 1 Jam')),
                     DropdownMenuItem(value: 2, child: Text('Setiap 2 Jam')),
                     DropdownMenuItem(value: 3, child: Text('Setiap 3 Jam')),
@@ -402,21 +441,21 @@ class _SettingsViewState extends State<SettingsView> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _selectTime(true),
-                    icon: const Icon(Icons.access_time, size: 18),
+                    icon: Icon(Icons.access_time, size: 18),
                     label: Text('Mulai: ${_startTime.format(context)}'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _selectTime(false),
-                    icon: const Icon(Icons.access_time_filled, size: 18),
+                    icon: Icon(Icons.access_time_filled, size: 18),
                     label: Text('Selesai: ${_endTime.format(context)}'),
                   ),
                 ),

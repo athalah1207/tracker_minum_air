@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "566795072273",
+    "project_id": "hydrotracker-8f8d5",
+    "storage_bucket": "hydrotracker-8f8d5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566795072273:android:eacf8232d079d3010592b0",
+        "android_client_info": {
+          "package_name": "com.example.tracker_minum_air"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "566795072273-gjt3v8f07t65smai7pfuth1ngiufdmne.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tracker_minum_air",
+            "certificate_hash": "3701433ac25c7f486e78232091a7ce9a64e68a89"
+          }
+        },
+        {
+          "client_id": "566795072273-d331juo6rj2icsrumbusbkdkcj95g7f2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB69RlbpCCrXHoWOBH0XZgRWwB4I8tg1R4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "566795072273-d331juo6rj2icsrumbusbkdkcj95g7f2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "566795072273-082vtaukf4k69nld6j1en5qfkd3fu8nh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.trackerMinumAir"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,9 +1,10 @@
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("com.google.gms.google-services")
+
+    // Flutter Gradle Plugin
     id("dev.flutter.flutter-gradle-plugin")
 }
-
 android {
     namespace = "com.example.tracker_minum_air"
     compileSdk = flutter.compileSdkVersion

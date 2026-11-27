@@ -50,7 +50,7 @@ class _HomeViewState extends State<HomeView> {
       listenable: _controller,
       builder: (context, child) {
         if (_controller.isLoading) {
-          return const Scaffold(
+          return Scaffold(
             backgroundColor: AppColors.lightBlue,
             body: Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -70,38 +70,38 @@ class _HomeViewState extends State<HomeView> {
         return Scaffold(
           backgroundColor: AppColors.lightBlue,
           appBar: AppBar(
-            title: const Text(
+            title: Text(
               'HydroTracker',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.alarm_rounded),
+                icon: Icon(Icons.alarm_rounded),
                 onPressed: () {
                   showDialog<void>(
                     context: context,
-                    builder: (dialogContext) => const AlarmDialog(),
+                    builder: (dialogContext) => AlarmDialog(),
                   );
                 },
               ),
               Container(
-                margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                margin: EdgeInsets.only(right: 16),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.local_fire_department,
                       color: Colors.orangeAccent,
                       size: 20,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       '${_controller.streakDays} Hari',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -115,16 +115,16 @@ class _HomeViewState extends State<HomeView> {
             onRefresh: _controller.loadData,
             color: AppColors.primary,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(20),
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeaderCard(remainingMl),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   Center(child: _buildProgressRing(progress, percentage)),
-                  const SizedBox(height: 32),
-                  const Text(
+                  SizedBox(height: 32),
+                  Text(
                     'Tambah Air Minum',
                     style: TextStyle(
                       fontSize: 16,
@@ -132,15 +132,15 @@ class _HomeViewState extends State<HomeView> {
                       color: AppColors.textDark,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _buildQuickAddButtons(),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   _buildCustomBottleCard(),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Riwayat Hari Ini',
                         style: TextStyle(
                           fontSize: 16,
@@ -150,14 +150,14 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       Text(
                         '${_controller.logs.length} kali minum',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           color: AppColors.textMuted,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _buildLogList(),
                 ],
               ),
@@ -170,45 +170,45 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildHeaderCard(int remainingMl) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.lightBlue,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.water_drop,
               color: AppColors.primary,
               size: 28,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   remainingMl == 0 ? 'Target Tercapai!' : 'Tetap Terhidrasi!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textMuted,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   remainingMl == 0
                       ? 'Hebat, kamu minum cukup hari ini 🎉'
@@ -237,7 +237,7 @@ class _HomeViewState extends State<HomeView> {
           child: CircularProgressIndicator(
             value: progress,
             strokeWidth: 16,
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.softBlue,
             color: AppColors.primary,
             strokeCap: StrokeCap.round,
           ),
@@ -245,15 +245,15 @@ class _HomeViewState extends State<HomeView> {
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.water_drop_rounded,
               color: AppColors.accent,
               size: 36,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               '$percentage%',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 38,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -261,7 +261,7 @@ class _HomeViewState extends State<HomeView> {
             ),
             Text(
               '${_controller.currentAmountMl} / ${_controller.dailyGoalMl} ml',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textMuted,
                 fontWeight: FontWeight.w500,
@@ -290,9 +290,9 @@ class _HomeViewState extends State<HomeView> {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: 95,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: AppColors.primary.withValues(alpha: 0.15),
@@ -301,17 +301,17 @@ class _HomeViewState extends State<HomeView> {
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.06),
               blurRadius: 8,
-              offset: const Offset(0, 3),
+              offset: Offset(0, 3),
             ),
           ],
         ),
         child: Column(
           children: [
             Icon(icon, color: AppColors.primary, size: 26),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               '+$amount ml',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
                 fontSize: 14,
@@ -327,15 +327,15 @@ class _HomeViewState extends State<HomeView> {
     final capacity = _controller.bottleCapacityMl;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -344,23 +344,23 @@ class _HomeViewState extends State<HomeView> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.lightBlue,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.local_drink,
                   color: AppColors.primary,
                   size: 30,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Botol Minum Saya',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -368,10 +368,10 @@ class _HomeViewState extends State<HomeView> {
                         color: AppColors.textDark,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       'Kapasitas $capacity ml',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 13,
                       ),
@@ -382,14 +382,14 @@ class _HomeViewState extends State<HomeView> {
               IconButton(
                 tooltip: 'Atur kapasitas botol',
                 onPressed: _showBottleSettingsDialog,
-                icon: const Icon(
+                icon: Icon(
                   Icons.edit_outlined,
                   color: AppColors.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -397,12 +397,12 @@ class _HomeViewState extends State<HomeView> {
                 capacity,
                 drinkType: 'Botol Minum',
               ),
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add),
               label: Text('Tambah 1 Botol ($capacity ml)'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                padding: EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -423,12 +423,12 @@ class _HomeViewState extends State<HomeView> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Atur Kapasitas Botol'),
+          title: Text('Atur Kapasitas Botol'),
           content: TextField(
             controller: textController,
             autofocus: true,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Kapasitas botol',
               hintText: 'Contoh: 750',
               suffixText: 'ml',
@@ -438,14 +438,14 @@ class _HomeViewState extends State<HomeView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Batal'),
+              child: Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () {
                 final capacity = int.tryParse(textController.text.trim());
                 if (capacity == null || capacity < 50 || capacity > 5000) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Masukkan kapasitas 50 sampai 5000 ml.'),
                     ),
                   );
@@ -453,7 +453,7 @@ class _HomeViewState extends State<HomeView> {
                 }
                 Navigator.of(dialogContext).pop(capacity);
               },
-              child: const Text('Simpan'),
+              child: Text('Simpan'),
             ),
           ],
         );
@@ -480,7 +480,7 @@ class _HomeViewState extends State<HomeView> {
 
     if (remainingMl <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Target minum harian sudah tercapai!'),
         ),
       );
@@ -513,9 +513,9 @@ class _HomeViewState extends State<HomeView> {
 
     if (logs.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'Belum ada catatan minum hari ini.',
           style: TextStyle(color: AppColors.textMuted),
         ),
@@ -524,7 +524,7 @@ class _HomeViewState extends State<HomeView> {
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: NeverScrollableScrollPhysics(),
       itemCount: logs.length,
       itemBuilder: (context, index) {
         final log = logs[index];
@@ -533,47 +533,47 @@ class _HomeViewState extends State<HomeView> {
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            margin: const EdgeInsets.only(bottom: 10),
+            padding: EdgeInsets.only(right: 20),
+            margin: EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
               color: Colors.red.shade400,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.delete, color: Colors.white),
+            child: Icon(Icons.delete, color: Colors.white),
           ),
           onDismissed: (_) => _controller.deleteLog(log.id),
           child: Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
+            margin: EdgeInsets.only(bottom: 10),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.cardBg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
                 CircleAvatar(
                   backgroundColor: AppColors.lightBlue,
-                  child: const Icon(
+                  child: Icon(
                     Icons.water_drop,
                     color: AppColors.primary,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         log.drinkType,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppColors.textDark,
                         ),
                       ),
                       Text(
                         _formatTime(log.timestamp),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textMuted,
                         ),
@@ -583,7 +583,7 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 Text(
                   '+${log.amountMl} ml',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                     fontSize: 15,

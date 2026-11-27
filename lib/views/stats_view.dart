@@ -73,20 +73,20 @@ class _StatsViewState extends State<StatsView> {
         return Scaffold(
           backgroundColor: AppColors.lightBlue,
           appBar: AppBar(
-            title: const Text(
+            title: Text(
               'Statistik Hidrasi',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.cardBg,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -94,7 +94,7 @@ class _StatsViewState extends State<StatsView> {
                       IconButton(
                         tooltip: 'Minggu sebelumnya',
                         onPressed: () => setState(() => _weekOffset--),
-                        icon: const Icon(Icons.chevron_left_rounded),
+                        icon: Icon(Icons.chevron_left_rounded),
                       ),
                       Expanded(
                         child: Column(
@@ -103,16 +103,16 @@ class _StatsViewState extends State<StatsView> {
                               _weekOffset == 0
                                   ? 'Minggu Ini'
                                   : '${_weekOffset.abs()} Minggu Sebelumnya',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            SizedBox(height: 3),
                             Text(
                               _dateRange(dates.first, dates.last),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textMuted,
                               ),
@@ -125,12 +125,12 @@ class _StatsViewState extends State<StatsView> {
                         onPressed: _weekOffset < 0
                             ? () => setState(() => _weekOffset++)
                             : null,
-                        icon: const Icon(Icons.chevron_right_rounded),
+                        icon: Icon(Icons.chevron_right_rounded),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -140,7 +140,7 @@ class _StatsViewState extends State<StatsView> {
                         Icons.equalizer_rounded,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: _buildSummaryCard(
                         'Total 7 Hari',
@@ -150,30 +150,30 @@ class _StatsViewState extends State<StatsView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _buildSummaryCard(
                   'Hari Mencapai Target',
                   '$achievedDays dari 7 hari',
                   Icons.emoji_events_rounded,
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.cardBg,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Konsumsi Air per Hari',
                         style: TextStyle(
                           fontSize: 16,
@@ -181,15 +181,15 @@ class _StatsViewState extends State<StatsView> {
                           color: AppColors.textDark,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         'Garis putus-putus menunjukkan target $goal ml',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textMuted,
                         ),
                       ),
-                      const SizedBox(height: 28),
+                      SizedBox(height: 28),
                       SizedBox(
                         height: 230,
                         child: BarChart(
@@ -197,16 +197,16 @@ class _StatsViewState extends State<StatsView> {
                             alignment: BarChartAlignment.spaceAround,
                             maxY: maxChartY,
                             minY: 0,
-                            gridData: const FlGridData(show: false),
+                            gridData: FlGridData(show: false),
                             borderData: FlBorderData(show: false),
                             titlesData: FlTitlesData(
-                              topTitles: const AxisTitles(
+                              topTitles: AxisTitles(
                                 sideTitles: SideTitles(showTitles: false),
                               ),
-                              rightTitles: const AxisTitles(
+                              rightTitles: AxisTitles(
                                 sideTitles: SideTitles(showTitles: false),
                               ),
-                              leftTitles: const AxisTitles(
+                              leftTitles: AxisTitles(
                                 sideTitles: SideTitles(showTitles: false),
                               ),
                               bottomTitles: AxisTitles(
@@ -215,13 +215,13 @@ class _StatsViewState extends State<StatsView> {
                                   getTitlesWidget: (value, meta) {
                                     final index = value.toInt();
                                     if (index < 0 || index >= dates.length) {
-                                      return const SizedBox.shrink();
+                                      return SizedBox.shrink();
                                     }
                                     return Padding(
-                                      padding: const EdgeInsets.only(top: 8),
+                                      padding: EdgeInsets.only(top: 8),
                                       child: Text(
                                         _dayLabel(dates[index]),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: AppColors.textMuted,
                                           fontWeight: FontWeight.w600,
                                           fontSize: 12,
@@ -265,9 +265,62 @@ class _StatsViewState extends State<StatsView> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 24),
+                _buildBadgeSection([
+                  _BadgeInfo(
+                    title: 'Langkah Pertama',
+                    description: 'Capai target minum harian sekali.',
+                    icon: Icons.water_drop_rounded,
+                    current: widget.waterController.totalGoalDays.toDouble(),
+                    target: 1,
+                    unit: 'hari',
+                    unlocked: widget.waterController.unlockedBadgeIds
+                        .contains('first_goal'),
+                  ),
+                  _BadgeInfo(
+                    title: 'Mulai Konsisten',
+                    description: 'Pertahankan streak selama 3 hari.',
+                    icon: Icons.local_fire_department_rounded,
+                    current: widget.waterController.longestStreakDays.toDouble(),
+                    target: 3,
+                    unit: 'hari',
+                    unlocked: widget.waterController.unlockedBadgeIds
+                        .contains('streak_3'),
+                  ),
+                  _BadgeInfo(
+                    title: 'Seminggu Hebat',
+                    description: 'Capai target 7 hari berturut-turut.',
+                    icon: Icons.workspace_premium_rounded,
+                    current: widget.waterController.longestStreakDays.toDouble(),
+                    target: 7,
+                    unit: 'hari',
+                    unlocked: widget.waterController.unlockedBadgeIds
+                        .contains('streak_7'),
+                  ),
+                  _BadgeInfo(
+                    title: 'Pejuang Hidrasi',
+                    description: 'Capai target harian sebanyak 30 hari.',
+                    icon: Icons.emoji_events_rounded,
+                    current: widget.waterController.totalGoalDays.toDouble(),
+                    target: 30,
+                    unit: 'hari',
+                    unlocked: widget.waterController.unlockedBadgeIds
+                        .contains('goal_30'),
+                  ),
+                  _BadgeInfo(
+                    title: '100 Liter',
+                    description: 'Catat konsumsi air hingga 100 liter.',
+                    icon: Icons.sports_score_rounded,
+                    current: widget.waterController.totalWaterMl / 1000,
+                    target: 100,
+                    unit: 'L',
+                    unlocked: widget.waterController.unlockedBadgeIds
+                        .contains('water_100_liters'),
+                  ),
+                ]),
+                SizedBox(height: 16),
                 if (total == 0)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(8),
                     child: Text(
                       'Belum ada catatan minum pada rentang minggu ini.',
@@ -283,26 +336,177 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
+  Widget _buildBadgeSection(List<_BadgeInfo> badges) {
+    final unlockedCount = badges.where((badge) => badge.isUnlocked).length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Pencapaian & Badge',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.softBlue,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$unlockedCount/${badges.length} terbuka',
+                style: TextStyle(
+                  color: AppColors.primaryDark,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 5),
+        Text(
+          'Kumpulkan badge dengan menjaga kebiasaan minum air.',
+          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+        ),
+        SizedBox(height: 14),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: badges.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.82,
+          ),
+          itemBuilder: (context, index) => _buildBadgeCard(badges[index]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadgeCard(_BadgeInfo badge) {
+    final unlocked = badge.isUnlocked;
+    final badgeColor =
+        unlocked ? const Color(0xFFE69A20) : AppColors.textMuted;
+    final progress = badge.isUnlocked
+        ? 1.0
+        : (badge.current / badge.target).clamp(0.0, 1.0).toDouble();
+
+    return Container(
+      padding: EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(
+          color: unlocked ? const Color(0xFFFFD78A) : AppColors.borderBlue,
+          width: unlocked ? 1.3 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: unlocked
+                      ? const Color(0xFFFFF1D6)
+                      : AppColors.softBlue,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(badge.icon, color: badgeColor, size: 23),
+              ),
+              Icon(
+                unlocked ? Icons.lock_open_rounded : Icons.lock_outline_rounded,
+                color: unlocked ? badgeColor : AppColors.textMuted,
+                size: 18,
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Text(
+            badge.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppColors.textDark,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 4),
+          Expanded(
+            child: Text(
+              badge.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ),
+          SizedBox(height: 9),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: AppColors.softBlue,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                unlocked ? badgeColor : AppColors.primary,
+              ),
+            ),
+          ),
+          SizedBox(height: 7),
+          Text(
+            unlocked ? 'Badge terbuka!' : badge.progressText,
+            style: TextStyle(
+              color: unlocked ? badgeColor : AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSummaryCard(String title, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: AppColors.primary, size: 24),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
@@ -311,5 +515,40 @@ class _StatsViewState extends State<StatsView> {
         ],
       ),
     );
+  }
+}
+
+
+class _BadgeInfo {
+  final String title;
+  final String description;
+  final IconData icon;
+  final double current;
+  final double target;
+  final String unit;
+  final bool unlocked;
+
+  const _BadgeInfo({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.current,
+    required this.target,
+    required this.unit,
+    required this.unlocked,
+  });
+
+  bool get isUnlocked => unlocked;
+
+  String get progressText {
+    final shownCurrent = current >= target
+        ? target
+        : (unit == 'L'
+            ? current.toStringAsFixed(1)
+            : current.toInt().toString());
+    final shownTarget = unit == 'L'
+        ? target.toStringAsFixed(0)
+        : target.toInt().toString();
+    return '$shownCurrent / $shownTarget $unit';
   }
 }

@@ -8,11 +8,13 @@ import 'stats_view.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
   final UserProfile profile;
+  final String? cloudUid;
   final VoidCallback onLogout;
 
   const MainNavigationWrapper({
     super.key,
     required this.profile,
+    this.cloudUid,
     required this.onLogout,
   });
 
@@ -32,6 +34,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     _waterController = WaterController(
       profileId: widget.profile.id,
       initialGoalMl: widget.profile.dailyGoalMl,
+      cloudUid: widget.cloudUid,
     );
     _pages = [
       HomeView(controller: _waterController),
@@ -43,6 +46,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   Widget _createSettingsPage() => SettingsView(
         key: ValueKey(_settingsPageVersion),
         profile: widget.profile,
+        cloudUid: widget.cloudUid,
         waterController: _waterController,
         onLogout: widget.onLogout,
       );
